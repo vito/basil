@@ -3,10 +3,8 @@ package main
 import (
 	"flag"
 	"github.com/cloudfoundry/go_cfmessagebus"
-	"github.com/howeyc/fsnotify"
 	"github.com/vito/basil"
 	"github.com/vito/basil/sshark"
-	"io/ioutil"
 	"log"
 )
 
@@ -48,42 +46,27 @@ func main() {
 		return
 	}
 
+	watcher := basil.NewStateWatcher(*ssharkState)
+
 	registrator := basil.NewRegistrator(config.Host, mbus)
 
 	registrar := basil_sshark.NewRegistrar(registrator)
 
-	watcher, err := fsnotify.NewWatcher()
+	err = watcher.OnModify(func(body []byte) {
+		log.Printf("I see you have modified %s, sir!\n", *ssharkState)
+
+		state, err := basil_sshark.ParseState(body)
+		if err != nil {
+			log.Printf("failed to parse sshark state: %s\n", err)
+			return
+		}
+
+		registrar.Update(state)
+	})
+
 	if err != nil {
 		log.Fatal(err)
 		return
-	}
-
-	go func() {
-		for {
-			select {
-			case <-watcher.Event:
-				body, err := ioutil.ReadFile(*ssharkState)
-				if err != nil {
-					log.Printf("failed to read sshark state: %s\n", err)
-					break
-				}
-
-				state, err := basil_sshark.ParseState(body)
-				if err != nil {
-					log.Printf("failed to parse sshark state: %s\n", err)
-					break
-				}
-
-				registrar.Update(state)
-			case err := <-watcher.Error:
-				log.Println("error:", err)
-			}
-		}
-	}()
-
-	err = watcher.WatchFlags(*ssharkState, fsnotify.FSN_MODIFY)
-	if err != nil {
-		log.Fatal(err)
 	}
 
 	select {}
