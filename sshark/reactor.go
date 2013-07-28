@@ -7,12 +7,12 @@ import (
 	"log"
 )
 
-func ReactTo(watcher *basil.StateWatcher, mbus go_cfmessagebus.CFMessageBus, config basil.Config) {
+func ReactTo(watcher *basil.StateWatcher, mbus go_cfmessagebus.CFMessageBus, config basil.Config) error {
 	registrator := basil.NewRegistrator(config.Host, mbus)
 
 	registrar := NewRegistrar(registrator)
 
-	watcher.OnModify(func(body io.Reader) {
+	return watcher.OnModify(func(body io.Reader) {
 		state, err := ParseState(body)
 		if err != nil {
 			log.Printf("failed to parse sshark state: %s\n", err)

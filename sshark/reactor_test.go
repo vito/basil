@@ -39,7 +39,8 @@ func (s *WSuite) TestReactingToState(c *C) {
 
 	mbus := go_cfmessagebus.NewMockMessageBus()
 
-	ReactTo(watcher, mbus, basil.DefaultConfig)
+	err := ReactTo(watcher, mbus, basil.DefaultConfig)
+	c.Assert(err, IsNil)
 
 	registered := make(chan []byte)
 

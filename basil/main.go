@@ -48,7 +48,7 @@ func main() {
 
 	watcher := basil.NewStateWatcher(*ssharkState)
 
-	err := basil_sshark.ReactTo(watcher, mbus, config)
+	err = basil_sshark.ReactTo(watcher, mbus, config)
 	if err != nil {
 		log.Fatal(err)
 		return
