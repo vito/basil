@@ -1,0 +1,38 @@
+                          ____   ___   __  __ __   
+                          || )) // \\ (( \ || ||   
+                          ||=)  ||=||  \\  || ||
+                          ||_)) || || \_)) || ||__|
+                          
+                public relations for antisocial simpletons
+
+= Responsibilities
+
+== advertising capacity
+
+  Basil will be configured with the total capacity of the VM containing the
+  colocated DEA, sshark agent, and stager. It will look at the usage of the
+  3 components, and compute availability from this.
+
+  DEA:
+    dea.advertise: stack, available memory, app instance counts
+
+  sshark:
+    ssh.advertise: stack, available memory
+
+  staging:
+    staging.advertise: stack, available memory
+
+
+== router registration
+
+  Basil will watch the state of the 3 components for changes to their routes,
+  and be sure to register them on an interval, and unregister them when they
+  go away. It will use fsnotify to immediately see changes.
+
+  DEA:
+    router.register for applications configured with URIs.
+    router.unregister when it sees a route or instance disappear
+
+  sshark:
+    router.register for sessions, with the session GUID as the host
+    router.unregister when it sees a session go away
