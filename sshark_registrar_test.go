@@ -58,7 +58,7 @@ func (s *SRSuite) TestRegistrarUpdateUnregisters(c *C) {
 	})
 
 	registrar.Update(&SSHarkState{
-		ID: "foo",
+		ID:       "foo",
 		Sessions: map[string]SSHarkSession{},
 	})
 

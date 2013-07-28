@@ -10,7 +10,7 @@ type SSHarkSession struct {
 }
 
 type SSHarkState struct {
-	ID string `json:"id"`
+	ID       string                   `json:"id"`
 	Sessions map[string]SSHarkSession `json:"sessions"`
 }
 

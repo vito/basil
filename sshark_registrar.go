@@ -1,29 +1,29 @@
 package basil
 
 import (
-	"log"
 	"encoding/json"
 	"github.com/cloudfoundry/go_cfmessagebus"
 	"github.com/cloudfoundry/sshark"
+	"log"
 )
 
 type Routes map[string]sshark.MappedPort
 
 type SSHarkRegistrar struct {
-	routes Routes
+	routes     Routes
 	messageBus go_cfmessagebus.CFMessageBus
 }
 
 func NewSSHarkRegistrar(mbus go_cfmessagebus.CFMessageBus) *SSHarkRegistrar {
 	return &SSHarkRegistrar{
-		routes: make(Routes),
+		routes:     make(Routes),
 		messageBus: mbus,
 	}
 }
 
 type RegistryMessage struct {
-	URIs []string `json:"uris"`
-	Host string `json:"host"`
+	URIs []string          `json:"uris"`
+	Host string            `json:"host"`
 	Port sshark.MappedPort `json:"port"`
 }
 

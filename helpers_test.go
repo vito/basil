@@ -6,4 +6,3 @@ import (
 )
 
 func Test(t *testing.T) { TestingT(t) }
-

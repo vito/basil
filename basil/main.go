@@ -1,12 +1,12 @@
 package main
 
 import (
-	"github.com/howeyc/fsnotify"
-	"github.com/cloudfoundry/go_cfmessagebus"
-	"github.com/vito/basil"
 	"flag"
-	"log"
+	"github.com/cloudfoundry/go_cfmessagebus"
+	"github.com/howeyc/fsnotify"
+	"github.com/vito/basil"
 	"io/ioutil"
+	"log"
 )
 
 var ssharkState = flag.String("sshark", "/tmp/sshark.json", "path to sshark state file")
@@ -36,35 +36,35 @@ func main() {
 	registrar := basil.NewSSHarkRegistrar(mbus)
 
 	watcher, err := fsnotify.NewWatcher()
-    if err != nil {
-        log.Fatal(err)
-        return
-    }
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
 
-    go func() {
-        for {
-            select {
-            case ev := <-watcher.Event:
-                log.Println("WHOA SHIT:", ev)
+	go func() {
+		for {
+			select {
+			case ev := <-watcher.Event:
+				log.Println("WHOA SHIT:", ev)
 
-                if ev.IsModify() {
-                	log.Println("updating!")
+				if ev.IsModify() {
+					log.Println("updating!")
 					body, err := ioutil.ReadFile(*ssharkState)
 					if err == nil {
 						log.Println("sup")
 						registrar.Update(body)
 					}
 				}
-            case err := <-watcher.Error:
-                log.Println("error:", err)
-            }
-        }
-    }()
+			case err := <-watcher.Error:
+				log.Println("error:", err)
+			}
+		}
+	}()
 
 	err = watcher.Watch(*ssharkState)
-    if err != nil {
-        log.Fatal(err)
-    }
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	select {}
 
