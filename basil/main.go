@@ -5,6 +5,7 @@ import (
 	"github.com/cloudfoundry/go_cfmessagebus"
 	"github.com/howeyc/fsnotify"
 	"github.com/vito/basil"
+	"github.com/vito/basil/sshark"
 	"io/ioutil"
 	"log"
 )
@@ -33,7 +34,9 @@ func main() {
 		return
 	}
 
-	registrar := basil.NewSSHarkRegistrar(mbus)
+	registrator := basil.NewRegistrator("127.0.0.1", mbus)
+
+	registrar := basil_sshark.NewRegistrar(registrator)
 
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
@@ -54,7 +57,7 @@ func main() {
 						break
 					}
 
-					state, err := basil.ParseSSHarkState(body)
+					state, err := basil_sshark.ParseState(body)
 					if err != nil {
 						log.Printf("failed to parse sshark state: %s\n", err)
 						break

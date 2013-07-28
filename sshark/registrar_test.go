@@ -1,6 +1,7 @@
-package basil
+package basil_sshark
 
 import (
+	"github.com/vito/basil"
 	"github.com/cloudfoundry/go_cfmessagebus"
 	. "launchpad.net/gocheck"
 	"time"
@@ -15,16 +16,18 @@ func init() {
 func (s *SRSuite) TestRegistrarUpdateRegisters(c *C) {
 	mbus := go_cfmessagebus.NewMockMessageBus()
 
+	registrator := basil.NewRegistrator("1.2.3.4", mbus)
+
 	registered := make(chan []byte)
 
 	mbus.Subscribe("router.register", func(msg []byte) {
 		registered <- msg
 	})
 
-	registrar := NewSSHarkRegistrar(mbus)
-	registrar.Update(&SSHarkState{
-		Sessions: map[string]SSHarkSession{
-			"abc": SSHarkSession{
+	registrar := NewRegistrar(registrator)
+	registrar.Update(&State{
+		Sessions: map[string]Session{
+			"abc": Session{
 				Port: 123,
 			},
 		},
@@ -41,25 +44,27 @@ func (s *SRSuite) TestRegistrarUpdateRegisters(c *C) {
 func (s *SRSuite) TestRegistrarUpdateUnregisters(c *C) {
 	mbus := go_cfmessagebus.NewMockMessageBus()
 
+	registrator := basil.NewRegistrator("1.2.3.4", mbus)
+
 	unregistered := make(chan []byte)
 
 	mbus.Subscribe("router.unregister", func(msg []byte) {
 		unregistered <- msg
 	})
 
-	registrar := NewSSHarkRegistrar(mbus)
-	registrar.Update(&SSHarkState{
+	registrar := NewRegistrar(registrator)
+	registrar.Update(&State{
 		ID: "foo",
-		Sessions: map[string]SSHarkSession{
-			"abc": SSHarkSession{
+		Sessions: map[string]Session{
+			"abc": Session{
 				Port: 123,
 			},
 		},
 	})
 
-	registrar.Update(&SSHarkState{
+	registrar.Update(&State{
 		ID:       "foo",
-		Sessions: map[string]SSHarkSession{},
+		Sessions: map[string]Session{},
 	})
 
 	select {

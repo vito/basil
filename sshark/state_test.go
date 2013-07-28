@@ -1,17 +1,17 @@
-package basil
+package basil_sshark
 
 import (
 	. "launchpad.net/gocheck"
 )
 
-type SSSuite struct{}
+type SSuite struct{}
 
 func init() {
-	Suite(&SSSuite{})
+	Suite(&SSuite{})
 }
 
-func (s *SSSuite) TestParsingSSHarkState(c *C) {
-	state, err := ParseSSHarkState([]byte(
+func (s *SSuite) TestParsingState(c *C) {
+	state, err := ParseState([]byte(
 		`{
 			"id":"abc",
 			"sessions": {
@@ -30,8 +30,8 @@ func (s *SSSuite) TestParsingSSHarkState(c *C) {
 	c.Assert(err, IsNil)
 
 	c.Assert(state.ID, Equals, "abc")
-	c.Assert(state.Sessions, DeepEquals, map[string]SSHarkSession{
-		"abc": SSHarkSession{Port: 123},
-		"def": SSHarkSession{Port: 456},
+	c.Assert(state.Sessions, DeepEquals, map[string]Session{
+		"abc": Session{Port: 123},
+		"def": Session{Port: 456},
 	})
 }
