@@ -7,5 +7,5 @@ message_bus:
   password:
 
 capacity:
-  memory: 1073741824 # 1GB
-  disk: 1073741824 # 1GB
+  memory: 1024 # 1GB
+  disk: 1024 # 1GB

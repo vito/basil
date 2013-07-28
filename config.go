@@ -76,8 +76,8 @@ func LoadConfig(configFilePath string) Config {
 		},
 
 		Capacity: CapacityConfig{
-			MemoryInBytes: capacityMemory,
-			DiskInBytes:   capacityDisk,
+			MemoryInBytes: capacityMemory * 1024 * 1024,
+			DiskInBytes:   capacityDisk * 1024 * 1024,
 		},
 	}
 }
