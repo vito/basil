@@ -48,7 +48,7 @@ func (s *WSuite) TestReactingToState(c *C) {
 		registered <- msg
 	})
 
-	err := ioutil.WriteFile(
+	err = ioutil.WriteFile(
 		s.stateFile.Name(),
 		[]byte(`{"id":"abc","sessions":{"abc":{"port":123,"container":"foo"}}}`),
 		0644,
