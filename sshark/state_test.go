@@ -1,6 +1,7 @@
 package basil_sshark
 
 import (
+	"bytes"
 	. "launchpad.net/gocheck"
 )
 
@@ -11,7 +12,7 @@ func init() {
 }
 
 func (s *SSuite) TestParsingState(c *C) {
-	state, err := ParseState([]byte(
+	state, err := ParseState(bytes.NewBuffer([]byte(
 		`{
 			"id":"abc",
 			"sessions": {
@@ -25,7 +26,7 @@ func (s *SSuite) TestParsingState(c *C) {
 				}
 			}
 		}`,
-	))
+	)))
 
 	c.Assert(err, IsNil)
 

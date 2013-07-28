@@ -48,22 +48,7 @@ func main() {
 
 	watcher := basil.NewStateWatcher(*ssharkState)
 
-	registrator := basil.NewRegistrator(config.Host, mbus)
-
-	registrar := basil_sshark.NewRegistrar(registrator)
-
-	err = watcher.OnModify(func(body []byte) {
-		log.Printf("I see you have modified %s, sir!\n", *ssharkState)
-
-		state, err := basil_sshark.ParseState(body)
-		if err != nil {
-			log.Printf("failed to parse sshark state: %s\n", err)
-			return
-		}
-
-		registrar.Update(state)
-	})
-
+	err := basil_sshark.ReactTo(watcher, mbus, config)
 	if err != nil {
 		log.Fatal(err)
 		return

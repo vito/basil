@@ -3,6 +3,7 @@ package basil_sshark
 import (
 	"encoding/json"
 	"github.com/cloudfoundry/sshark"
+	"io"
 )
 
 type Session struct {
@@ -14,10 +15,11 @@ type State struct {
 	Sessions map[string]Session `json:"sessions"`
 }
 
-func ParseState(stateJSON []byte) (*State, error) {
+func ParseState(stateIO io.Reader) (*State, error) {
 	state := &State{}
 
-	err := json.Unmarshal(stateJSON, state)
+	decoder := json.NewDecoder(stateIO)
+	err := decoder.Decode(state)
 	if err != nil {
 		return nil, err
 	}

@@ -1,6 +1,7 @@
 package basil
 
 import (
+	"io"
 	"io/ioutil"
 	. "launchpad.net/gocheck"
 	"os"
@@ -35,7 +36,10 @@ func (s *SWSuite) TestStateWatcherSeesModifications(c *C) {
 
 	modified := make(chan []byte)
 
-	sw.OnModify(func(contents []byte) {
+	sw.OnModify(func(io io.Reader) {
+		contents, err := ioutil.ReadAll(io)
+		c.Assert(err, IsNil)
+
 		modified <- contents
 	})
 
@@ -44,13 +48,13 @@ func (s *SWSuite) TestStateWatcherSeesModifications(c *C) {
 	err := writeAbc.Run()
 	c.Assert(err, IsNil)
 
+	val := waitReceive(modified)
+	c.Assert(string(val), Equals, "abc\n")
+
 	writeDef := exec.Command("echo", "def")
 	writeDef.Stdout = s.stateFile
 	err = writeDef.Run()
 	c.Assert(err, IsNil)
-
-	val := waitReceive(modified)
-	c.Assert(string(val), Equals, "abc\n")
 
 	val = waitReceive(modified)
 	c.Assert(string(val), Equals, "abc\ndef\n")

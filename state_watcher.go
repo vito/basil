@@ -2,7 +2,8 @@ package basil
 
 import (
 	"github.com/howeyc/fsnotify"
-	"io/ioutil"
+	"io"
+	"os"
 )
 
 type StateWatcher struct {
@@ -15,7 +16,7 @@ func NewStateWatcher(filePath string) *StateWatcher {
 	}
 }
 
-func (sw *StateWatcher) OnModify(callback func([]byte)) error {
+func (sw *StateWatcher) OnModify(callback func(io.Reader)) error {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		return err
@@ -25,7 +26,7 @@ func (sw *StateWatcher) OnModify(callback func([]byte)) error {
 		for {
 			select {
 			case <-watcher.Event:
-				body, err := ioutil.ReadFile(sw.StateFilePath)
+				body, err := os.Open(sw.StateFilePath)
 				if err != nil {
 					break
 				}
