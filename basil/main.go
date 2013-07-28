@@ -48,12 +48,19 @@ func main() {
 				log.Println("WHOA SHIT:", ev)
 
 				if ev.IsModify() {
-					log.Println("updating!")
 					body, err := ioutil.ReadFile(*ssharkState)
-					if err == nil {
-						log.Println("sup")
-						registrar.Update(body)
+					if err != nil {
+						log.Printf("failed to read sshark state: %s\n", err)
+						break
 					}
+
+					state, err := basil.ParseSSHarkState(body)
+					if err != nil {
+						log.Printf("failed to parse sshark state: %s\n", err)
+						break
+					}
+
+					registrar.Update(state)
 				}
 			case err := <-watcher.Error:
 				log.Println("error:", err)

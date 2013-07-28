@@ -15,7 +15,7 @@ type SSHarkState struct {
 }
 
 func ParseSSHarkState(stateJSON []byte) (*SSHarkState, error) {
-	var state *SSHarkState
+	state := &SSHarkState{}
 
 	err := json.Unmarshal(stateJSON, state)
 	if err != nil {
