@@ -1,0 +1,11 @@
+host: 10.10.16.24
+
+message_bus:
+  host: 127.0.0.1
+  port: 4222
+  username:
+  password:
+
+capacity:
+  memory: 1073741824 # 1GB
+  disk: 1073741824 # 1GB

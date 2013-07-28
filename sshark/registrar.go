@@ -1,8 +1,8 @@
 package basil_sshark
 
 import (
-	"github.com/vito/basil"
 	"github.com/cloudfoundry/sshark"
+	"github.com/vito/basil"
 )
 
 type Routes map[string]sshark.MappedPort

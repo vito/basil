@@ -1,8 +1,8 @@
 package basil_sshark
 
 import (
-	"github.com/vito/basil"
 	"github.com/cloudfoundry/go_cfmessagebus"
+	"github.com/vito/basil"
 	. "launchpad.net/gocheck"
 	"time"
 )
