@@ -28,8 +28,8 @@ func (r *Registrar) Update(state *State) error {
 	newRoutes := routesDiff(routes, r.routes)
 	oldRoutes := routesDiff(r.routes, routes)
 
-	go r.registerRoutes(newRoutes)
-	go r.unregisterRoutes(oldRoutes)
+	r.registerRoutes(newRoutes)
+	r.unregisterRoutes(oldRoutes)
 
 	r.routes = routes
 
