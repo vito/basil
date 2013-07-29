@@ -1,12 +1,11 @@
 package basil_sshark
 
 import (
-	"github.com/cloudfoundry/sshark"
 	"github.com/vito/basil"
 	"sync"
 )
 
-type Routes map[string]sshark.MappedPort
+type Routes map[string]int
 
 type Registrar struct {
 	routes       Routes
@@ -59,13 +58,13 @@ func (r *Registrar) PeriodicallyRegister() error {
 
 func (r *Registrar) registerRoutes(routes Routes) {
 	for id, port := range routes {
-		r.routerClient.Register(int(port), []string{id})
+		r.routerClient.Register(port, []string{id})
 	}
 }
 
 func (r *Registrar) unregisterRoutes(routes Routes) {
 	for id, port := range routes {
-		r.routerClient.Unregister(int(port), []string{id})
+		r.routerClient.Unregister(port, []string{id})
 	}
 }
 

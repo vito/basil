@@ -2,12 +2,11 @@ package basil_sshark
 
 import (
 	"encoding/json"
-	"github.com/cloudfoundry/sshark"
 	"io"
 )
 
 type Session struct {
-	Port sshark.MappedPort `json:"port"`
+	Port int `json:"port"`
 }
 
 type State struct {
