@@ -9,7 +9,7 @@ import (
 
 type RouterClient struct {
 	Host       string
-	messageBus go_cfmessagebus.CFMessageBus
+	messageBus cfmessagebus.MessageBus
 
 	periodicCallback     func()
 	stopPeriodicCallback chan bool
@@ -25,7 +25,7 @@ type RouterGreetingMessage struct {
 	MinimumRegisterInterval int `json:"minimumRegisterIntervalInSeconds"`
 }
 
-func NewRouterClient(host string, messageBus go_cfmessagebus.CFMessageBus) *RouterClient {
+func NewRouterClient(host string, messageBus cfmessagebus.MessageBus) *RouterClient {
 	return &RouterClient{
 		Host:       host,
 		messageBus: messageBus,

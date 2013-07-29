@@ -1,7 +1,7 @@
 package basil_sshark
 
 import (
-	"github.com/cloudfoundry/go_cfmessagebus"
+	"github.com/cloudfoundry/go_cfmessagebus/mock_cfmessagebus"
 	"github.com/vito/basil"
 	. "launchpad.net/gocheck"
 	"time"
@@ -14,7 +14,7 @@ func init() {
 }
 
 func (s *SRSuite) TestRegistrarUpdateRegisters(c *C) {
-	mbus := go_cfmessagebus.NewMockMessageBus()
+	mbus := mock_cfmessagebus.NewMockMessageBus()
 
 	routerClient := basil.NewRouterClient("1.2.3.4", mbus)
 
@@ -42,7 +42,7 @@ func (s *SRSuite) TestRegistrarUpdateRegisters(c *C) {
 }
 
 func (s *SRSuite) TestRegistrarUpdateUnregisters(c *C) {
-	mbus := go_cfmessagebus.NewMockMessageBus()
+	mbus := mock_cfmessagebus.NewMockMessageBus()
 
 	routerClient := basil.NewRouterClient("1.2.3.4", mbus)
 
@@ -76,7 +76,7 @@ func (s *SRSuite) TestRegistrarUpdateUnregisters(c *C) {
 }
 
 func (s *SRSuite) TestPeriodicRegistration(c *C) {
-	mbus := go_cfmessagebus.NewMockMessageBus()
+	mbus := mock_cfmessagebus.NewMockMessageBus()
 
 	routerClient := basil.NewRouterClient("1.2.3.4", mbus)
 

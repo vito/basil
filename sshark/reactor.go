@@ -7,7 +7,7 @@ import (
 	"log"
 )
 
-func ReactTo(watcher *basil.StateWatcher, mbus cf.CFMessageBus, config basil.Config) error {
+func ReactTo(watcher *basil.StateWatcher, mbus cf.MessageBus, config basil.Config) error {
 	routerClient := basil.NewRouterClient(config.Host, mbus)
 
 	registrar := NewRegistrar(routerClient)

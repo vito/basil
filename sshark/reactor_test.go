@@ -1,7 +1,7 @@
 package basil_sshark
 
 import (
-	"github.com/cloudfoundry/go_cfmessagebus"
+	"github.com/cloudfoundry/go_cfmessagebus/mock_cfmessagebus"
 	"github.com/vito/basil"
 	"io/ioutil"
 	. "launchpad.net/gocheck"
@@ -37,7 +37,7 @@ func (s *WSuite) TearDownTest(c *C) {
 func (s *WSuite) TestReactingToState(c *C) {
 	watcher := basil.NewStateWatcher(s.stateFile.Name())
 
-	mbus := go_cfmessagebus.NewMockMessageBus()
+	mbus := mock_cfmessagebus.NewMockMessageBus()
 
 	err := ReactTo(watcher, mbus, basil.DefaultConfig)
 	c.Assert(err, IsNil)
@@ -67,7 +67,7 @@ func (s *WSuite) TestReactingToState(c *C) {
 func (s *WSuite) TestHandlingInitialState(c *C) {
 	watcher := basil.NewStateWatcher(s.stateFile.Name())
 
-	mbus := go_cfmessagebus.NewMockMessageBus()
+	mbus := mock_cfmessagebus.NewMockMessageBus()
 
 	err := ioutil.WriteFile(
 		s.stateFile.Name(),
@@ -96,7 +96,7 @@ func (s *WSuite) TestHandlingInitialState(c *C) {
 func (s *WSuite) TestReactingToRouterStart(c *C) {
 	watcher := basil.NewStateWatcher(s.stateFile.Name())
 
-	mbus := go_cfmessagebus.NewMockMessageBus()
+	mbus := mock_cfmessagebus.NewMockMessageBus()
 
 	err := ioutil.WriteFile(
 		s.stateFile.Name(),

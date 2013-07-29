@@ -1,7 +1,7 @@
 package basil
 
 import (
-	"github.com/cloudfoundry/go_cfmessagebus"
+	"github.com/cloudfoundry/go_cfmessagebus/mock_cfmessagebus"
 	. "launchpad.net/gocheck"
 	"time"
 )
@@ -13,7 +13,7 @@ func init() {
 }
 
 func (s *RSuite) TestRouterClientRegistering(c *C) {
-	mbus := go_cfmessagebus.NewMockMessageBus()
+	mbus := mock_cfmessagebus.NewMockMessageBus()
 
 	routerClient := NewRouterClient("1.2.3.4", mbus)
 
@@ -34,7 +34,7 @@ func (s *RSuite) TestRouterClientRegistering(c *C) {
 }
 
 func (s *RSuite) TestRouterClientUnregistering(c *C) {
-	mbus := go_cfmessagebus.NewMockMessageBus()
+	mbus := mock_cfmessagebus.NewMockMessageBus()
 
 	routerClient := NewRouterClient("1.2.3.4", mbus)
 
@@ -55,7 +55,7 @@ func (s *RSuite) TestRouterClientUnregistering(c *C) {
 }
 
 func (s *RSuite) TestRouterClientRouterStartHandling(c *C) {
-	mbus := go_cfmessagebus.NewMockMessageBus()
+	mbus := mock_cfmessagebus.NewMockMessageBus()
 
 	routerClient := NewRouterClient("1.2.3.4", mbus)
 
@@ -80,7 +80,7 @@ func (s *RSuite) TestRouterClientRouterStartHandling(c *C) {
 }
 
 func (s *RSuite) TestRouterClientGreeting(c *C) {
-	mbus := go_cfmessagebus.NewMockMessageBus()
+	mbus := mock_cfmessagebus.NewMockMessageBus()
 
 	routerClient := NewRouterClient("1.2.3.4", mbus)
 
