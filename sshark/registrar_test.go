@@ -16,7 +16,7 @@ func init() {
 func (s *SRSuite) TestRegistrarUpdateRegisters(c *C) {
 	mbus := go_cfmessagebus.NewMockMessageBus()
 
-	registrator := basil.NewRegistrator("1.2.3.4", mbus)
+	routerClient := basil.NewRouterClient("1.2.3.4", mbus)
 
 	registered := make(chan []byte)
 
@@ -24,7 +24,7 @@ func (s *SRSuite) TestRegistrarUpdateRegisters(c *C) {
 		registered <- msg
 	})
 
-	registrar := NewRegistrar(registrator)
+	registrar := NewRegistrar(routerClient)
 	registrar.Update(&State{
 		Sessions: map[string]Session{
 			"abc": Session{
@@ -44,7 +44,7 @@ func (s *SRSuite) TestRegistrarUpdateRegisters(c *C) {
 func (s *SRSuite) TestRegistrarUpdateUnregisters(c *C) {
 	mbus := go_cfmessagebus.NewMockMessageBus()
 
-	registrator := basil.NewRegistrator("1.2.3.4", mbus)
+	routerClient := basil.NewRouterClient("1.2.3.4", mbus)
 
 	unregistered := make(chan []byte)
 
@@ -52,7 +52,7 @@ func (s *SRSuite) TestRegistrarUpdateUnregisters(c *C) {
 		unregistered <- msg
 	})
 
-	registrar := NewRegistrar(registrator)
+	registrar := NewRegistrar(routerClient)
 	registrar.Update(&State{
 		ID: "foo",
 		Sessions: map[string]Session{
@@ -73,4 +73,40 @@ func (s *SRSuite) TestRegistrarUpdateUnregisters(c *C) {
 	case <-time.After(500 * time.Millisecond):
 		c.Error("did not receive a router.register!")
 	}
+}
+
+func (s *SRSuite) TestPeriodicRegistration(c *C) {
+	mbus := go_cfmessagebus.NewMockMessageBus()
+
+	routerClient := basil.NewRouterClient("1.2.3.4", mbus)
+
+	registrar := NewRegistrar(routerClient)
+	registrar.Update(&State{
+		ID: "foo",
+		Sessions: map[string]Session{
+			"abc": Session{
+				Port: 123,
+			},
+		},
+	})
+
+	registered := make(chan time.Time)
+	mbus.Subscribe("router.register", func(msg []byte) {
+		registered <- time.Now()
+	})
+
+	mbus.RespondToChannel("router.greet", func([]byte) []byte {
+		return []byte(`{"minimumRegisterIntervalInSeconds":1}`)
+	})
+
+	err := registrar.PeriodicallyRegister()
+	c.Assert(err, IsNil)
+
+	time1 := timedReceive(registered, 2*time.Second)
+	c.Assert(time1, NotNil)
+
+	time2 := timedReceive(registered, 2*time.Second)
+	c.Assert(time2, NotNil)
+
+	c.Assert((*time2).Sub(*time1) >= 1*time.Second, Equals, true)
 }

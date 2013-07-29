@@ -16,7 +16,9 @@ func NewStateWatcher(filePath string) *StateWatcher {
 	}
 }
 
-func (sw *StateWatcher) OnModify(callback func(io.Reader)) error {
+func (sw *StateWatcher) OnStateChange(callback func(io.Reader)) error {
+	go sw.handleUpdate(callback)
+
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		return err
@@ -26,16 +28,25 @@ func (sw *StateWatcher) OnModify(callback func(io.Reader)) error {
 		for {
 			select {
 			case <-watcher.Event:
-				body, err := os.Open(sw.StateFilePath)
+				err := sw.handleUpdate(callback)
 				if err != nil {
 					break
 				}
-
-				callback(body)
 			case <-watcher.Error:
 			}
 		}
 	}()
 
 	return watcher.WatchFlags(sw.StateFilePath, fsnotify.FSN_MODIFY)
+}
+
+func (sw *StateWatcher) handleUpdate(callback func(io.Reader)) error {
+	body, err := os.Open(sw.StateFilePath)
+	if err != nil {
+		return err
+	}
+
+	callback(body)
+
+	return nil
 }

@@ -17,7 +17,7 @@ func init() {
 	Suite(&WSuite{})
 }
 
-func (s *WSuite) SetUpSuite(c *C) {
+func (s *WSuite) SetUpTest(c *C) {
 	tmpdir := os.TempDir()
 
 	file, err := ioutil.TempFile(tmpdir, "sshark-watcher-state-file")
@@ -29,7 +29,7 @@ func (s *WSuite) SetUpSuite(c *C) {
 	s.stateFile = file
 }
 
-func (s *WSuite) TearDownSuite(c *C) {
+func (s *WSuite) TearDownTest(c *C) {
 	err := os.Remove(s.stateFile.Name())
 	c.Assert(err, IsNil)
 }
@@ -62,4 +62,65 @@ func (s *WSuite) TestReactingToState(c *C) {
 	case <-time.After(500 * time.Millisecond):
 		c.Error("did not receive a router.register!")
 	}
+}
+
+func (s *WSuite) TestHandlingInitialState(c *C) {
+	watcher := basil.NewStateWatcher(s.stateFile.Name())
+
+	mbus := go_cfmessagebus.NewMockMessageBus()
+
+	err := ioutil.WriteFile(
+		s.stateFile.Name(),
+		[]byte(`{"id":"abc","sessions":{"abc":{"port":123,"container":"foo"}}}`),
+		0644,
+	)
+	c.Assert(err, IsNil)
+
+	registered := make(chan []byte)
+
+	mbus.Subscribe("router.register", func(msg []byte) {
+		registered <- msg
+	})
+
+	err = ReactTo(watcher, mbus, basil.DefaultConfig)
+	c.Assert(err, IsNil)
+
+	select {
+	case msg := <-registered:
+		c.Assert(string(msg), Equals, `{"uris":["abc"],"host":"127.0.0.1","port":123}`)
+	case <-time.After(500 * time.Millisecond):
+		c.Error("did not receive a router.register!")
+	}
+}
+
+func (s *WSuite) TestReactingToRouterStart(c *C) {
+	watcher := basil.NewStateWatcher(s.stateFile.Name())
+
+	mbus := go_cfmessagebus.NewMockMessageBus()
+
+	err := ioutil.WriteFile(
+		s.stateFile.Name(),
+		[]byte(`{"id":"abc","sessions":{"abc":{"port":123,"container":"foo"}}}`),
+		0644,
+	)
+	c.Assert(err, IsNil)
+
+	err = ReactTo(watcher, mbus, basil.DefaultConfig)
+	c.Assert(err, IsNil)
+
+	registered := make(chan time.Time)
+
+	mbus.Subscribe("router.register", func(msg []byte) {
+		registered <- time.Now()
+	})
+
+	mbus.Publish("router.start", []byte(`{"minimumRegisterIntervalInSeconds":1}`))
+
+	time1 := timedReceive(registered, 2*time.Second)
+	c.Assert(time1, NotNil)
+
+	time2 := timedReceive(registered, 2*time.Second)
+	c.Assert(time2, NotNil)
+
+	c.Assert((*time2).Sub(*time1) >= 1*time.Second, Equals, true)
 }

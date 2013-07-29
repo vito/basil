@@ -36,19 +36,23 @@ func (s *SWSuite) TestStateWatcherSeesModifications(c *C) {
 
 	modified := make(chan []byte)
 
-	sw.OnModify(func(io io.Reader) {
+	err := sw.OnStateChange(func(io io.Reader) {
 		contents, err := ioutil.ReadAll(io)
 		c.Assert(err, IsNil)
 
 		modified <- contents
 	})
-
-	writeAbc := exec.Command("echo", "abc")
-	writeAbc.Stdout = s.stateFile
-	err := writeAbc.Run()
 	c.Assert(err, IsNil)
 
 	val := waitReceive(modified)
+	c.Assert(string(val), Equals, "")
+
+	writeAbc := exec.Command("echo", "abc")
+	writeAbc.Stdout = s.stateFile
+	err = writeAbc.Run()
+	c.Assert(err, IsNil)
+
+	val = waitReceive(modified)
 	c.Assert(string(val), Equals, "abc\n")
 
 	writeDef := exec.Command("echo", "def")
