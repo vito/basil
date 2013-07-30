@@ -17,6 +17,9 @@ func ReactTo(watcher *basil.StateWatcher, mbus cf.MessageBus, config basil.Confi
 		return err
 	}
 
+	advertiser := NewAdvertiser(config)
+	advertiser.AdvertisePeriodically(mbus)
+
 	return watcher.OnStateChange(func(body io.Reader) {
 		state, err := ParseState(body)
 		if err != nil {
@@ -25,5 +28,6 @@ func ReactTo(watcher *basil.StateWatcher, mbus cf.MessageBus, config basil.Confi
 		}
 
 		registrar.Update(state)
+		advertiser.Update(state)
 	})
 }

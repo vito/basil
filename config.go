@@ -9,6 +9,7 @@ type Config struct {
 	Host       string
 	MessageBus MessageBusConfig
 	Capacity   CapacityConfig
+	AdvertiseInterval int
 }
 
 type MessageBusConfig struct {
@@ -39,6 +40,8 @@ var DefaultConfig = Config{
 		MemoryInBytes: 1 * gigabyte,
 		DiskInBytes:   1 * gigabyte,
 	},
+
+	AdvertiseInterval: 10,
 }
 
 func LoadConfig(configFilePath string) Config {
@@ -65,6 +68,11 @@ func LoadConfig(configFilePath string) Config {
 		panic("non-numeric disk capacity")
 	}
 
+	advertiseInterval, err := strconv.Atoi(file.Require("advertise_interval"))
+	if err != nil {
+		panic("non-numeric advertise interval")
+	}
+
 	return Config{
 		Host: host,
 
@@ -79,5 +87,7 @@ func LoadConfig(configFilePath string) Config {
 			MemoryInBytes: capacityMemory * 1024 * 1024,
 			DiskInBytes:   capacityDisk * 1024 * 1024,
 		},
+
+		AdvertiseInterval: advertiseInterval,
 	}
 }

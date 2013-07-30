@@ -9,3 +9,5 @@ message_bus:
 capacity:
   memory: 1024 # 1GB
   disk: 1024 # 1GB
+
+advertise_interval: 10

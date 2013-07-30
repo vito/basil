@@ -124,3 +124,74 @@ func (s *WSuite) TestReactingToRouterStart(c *C) {
 
 	c.Assert((*time2).Sub(*time1) >= 1*time.Second, Equals, true)
 }
+
+func (s *WSuite) TestReactorSendsAdvertisements(c *C) {
+	watcher := basil.NewStateWatcher(s.stateFile.Name())
+
+	mbus := mock_cfmessagebus.NewMockMessageBus()
+
+	err := ioutil.WriteFile(
+		s.stateFile.Name(),
+		[]byte(`{"id":"abc","sessions":{}}`),
+		0644,
+	)
+	c.Assert(err, IsNil)
+
+	config := basil.DefaultConfig
+	config.AdvertiseInterval = 1
+
+	err = ReactTo(watcher, mbus, config)
+	c.Assert(err, IsNil)
+
+	advertised := make(chan time.Time)
+
+	mbus.Subscribe("ssh.advertise", func(msg []byte) {
+		advertised <- time.Now()
+	})
+
+	time1 := timedReceive(advertised, 2*time.Second)
+	c.Assert(time1, NotNil)
+
+	time2 := timedReceive(advertised, 2*time.Second)
+	c.Assert(time2, NotNil)
+
+	c.Assert((*time2).Sub(*time1) >= 1*time.Second, Equals, true)
+}
+
+func (s *WSuite) TestReactorSendsAdvertisementsWithUpdatedID(c *C) {
+	watcher := basil.NewStateWatcher(s.stateFile.Name())
+
+	mbus := mock_cfmessagebus.NewMockMessageBus()
+
+	err := ioutil.WriteFile(
+		s.stateFile.Name(),
+		[]byte(`{"id":"abc","sessions":{}}`),
+		0644,
+	)
+	c.Assert(err, IsNil)
+
+	config := basil.DefaultConfig
+	config.AdvertiseInterval = 1
+
+	err = ReactTo(watcher, mbus, config)
+	c.Assert(err, IsNil)
+
+	advertised := make(chan []byte)
+
+	mbus.Subscribe("ssh.advertise", func(msg []byte) {
+		advertised <- msg
+	})
+
+	msg1 := waitReceive(advertised, 2*time.Second)
+	c.Assert(string(msg1), Equals, `{"id":"abc"}`)
+
+	err = ioutil.WriteFile(
+		s.stateFile.Name(),
+		[]byte(`{"id":"def","sessions":{}}`),
+		0644,
+	)
+	c.Assert(err, IsNil)
+
+	msg2 := waitReceive(advertised, 2*time.Second)
+	c.Assert(string(msg2), Equals, `{"id":"def"}`)
+}
