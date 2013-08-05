@@ -8,6 +8,7 @@ import (
 	"time"
 	"github.com/remogatto/prettytest"
 	"testing"
+	"errors"
 )
 
 type SWSuite struct {
@@ -24,7 +25,7 @@ func TestStateWatcherRunner(t *testing.T) {
 	)
 }
 
-func (s *SWSuite) BeforeAll() {
+func (s *SWSuite) Before() {
 	tmpdir := os.TempDir()
 
 	file, err := ioutil.TempFile(tmpdir, "state-watcher-state-file")
@@ -33,12 +34,12 @@ func (s *SWSuite) BeforeAll() {
 	s.stateFile = file
 }
 
-func (s *SWSuite) AfterAll() {
+func (s *SWSuite) After() {
 	err := os.Remove(s.stateFile.Name())
 	s.Nil(err)
 }
 
-func (s *SWSuite) TestStateWatcherSeesModifications() {
+func (s *SWSuite) TestStateWatcherSeesModificationsAndInitialState() {
 	sw := NewStateWatcher(s.stateFile.Name())
 
 	modified := make(chan []byte)
@@ -51,7 +52,8 @@ func (s *SWSuite) TestStateWatcherSeesModifications() {
 	})
 	s.Nil(err)
 
-	val := waitReceive(modified)
+	val, err := waitReceive(modified)
+	s.Nil(err)
 	s.Equal(string(val), "")
 
 	writeAbc := exec.Command("echo", "abc")
@@ -59,7 +61,8 @@ func (s *SWSuite) TestStateWatcherSeesModifications() {
 	err = writeAbc.Run()
 	s.Nil(err)
 
-	val = waitReceive(modified)
+	val, err = waitReceive(modified)
+	s.Nil(err)
 	s.Equal(string(val), "abc\n")
 
 	writeDef := exec.Command("echo", "def")
@@ -67,15 +70,16 @@ func (s *SWSuite) TestStateWatcherSeesModifications() {
 	err = writeDef.Run()
 	s.Nil(err)
 
-	val = waitReceive(modified)
+	val, err = waitReceive(modified)
+	s.Nil(err)
 	s.Equal(string(val), "abc\ndef\n")
 }
 
-func waitReceive(from chan []byte) []byte {
+func waitReceive(from chan []byte) ([]byte, error) {
 	select {
 	case val := <-from:
-		return val
+		return val, nil
 	case <-time.After(500 * time.Millisecond):
-		return nil
+		return nil, errors.New("timeout")
 	}
 }
