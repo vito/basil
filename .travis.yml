@@ -8,8 +8,7 @@ matrix:
     - go: tip
 
 install:
-  - go get launchpad.net/gocheck
-  - go get github.com/nu7hatch/gouuid
   - go get -v ./...
+  - go get github.com/remogatto/prettytest
   - go build -v ./...
   - go test -i ./...
