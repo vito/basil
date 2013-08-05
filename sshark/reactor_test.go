@@ -138,7 +138,7 @@ func (s *WSuite) TestReactorSendsAdvertisements(c *C) {
 	c.Assert(err, IsNil)
 
 	config := basil.DefaultConfig
-	config.AdvertiseInterval = 1
+	config.AdvertiseInterval = 100 * time.Millisecond
 
 	err = ReactTo(watcher, mbus, config)
 	c.Assert(err, IsNil)
@@ -149,13 +149,13 @@ func (s *WSuite) TestReactorSendsAdvertisements(c *C) {
 		advertised <- time.Now()
 	})
 
-	time1 := timedReceive(advertised, 2*time.Second)
+	time1 := timedReceive(advertised, 1*time.Second)
 	c.Assert(time1, NotNil)
 
-	time2 := timedReceive(advertised, 2*time.Second)
+	time2 := timedReceive(advertised, 1*time.Second)
 	c.Assert(time2, NotNil)
 
-	c.Assert((*time2).Sub(*time1) >= 1*time.Second, Equals, true)
+	c.Assert((*time2).Sub(*time1) >= 100*time.Millisecond, Equals, true)
 }
 
 func (s *WSuite) TestReactorSendsAdvertisementsWithUpdatedID(c *C) {
@@ -171,7 +171,7 @@ func (s *WSuite) TestReactorSendsAdvertisementsWithUpdatedID(c *C) {
 	c.Assert(err, IsNil)
 
 	config := basil.DefaultConfig
-	config.AdvertiseInterval = 1
+	config.AdvertiseInterval = 100 * time.Millisecond
 
 	err = ReactTo(watcher, mbus, config)
 	c.Assert(err, IsNil)

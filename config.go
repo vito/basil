@@ -3,13 +3,14 @@ package basil
 import (
 	"github.com/kylelemons/go-gypsy/yaml"
 	"strconv"
+	"time"
 )
 
 type Config struct {
 	Host       string
 	MessageBus MessageBusConfig
 	Capacity   CapacityConfig
-	AdvertiseInterval int
+	AdvertiseInterval time.Duration
 }
 
 type MessageBusConfig struct {
@@ -41,7 +42,7 @@ var DefaultConfig = Config{
 		DiskInBytes:   1 * gigabyte,
 	},
 
-	AdvertiseInterval: 10,
+	AdvertiseInterval: 10 * time.Second,
 }
 
 func LoadConfig(configFilePath string) Config {
@@ -88,6 +89,6 @@ func LoadConfig(configFilePath string) Config {
 			DiskInBytes:   capacityDisk * 1024 * 1024,
 		},
 
-		AdvertiseInterval: advertiseInterval,
+		AdvertiseInterval: time.Duration(advertiseInterval) * time.Second,
 	}
 }

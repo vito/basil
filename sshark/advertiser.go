@@ -31,12 +31,10 @@ func (a *Advertiser) Update(state *State) {
 }
 
 func (a *Advertiser) AdvertisePeriodically(mbus cfmessagebus.MessageBus) {
-	interval := time.Duration(a.config.AdvertiseInterval) * time.Second
-
 	go func() {
 		for {
 			select {
-			case <-time.After(interval):
+			case <-time.After(a.config.AdvertiseInterval):
 				a.sendAdvertisement(mbus)
 			}
 		}
