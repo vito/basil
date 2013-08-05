@@ -1,53 +1,60 @@
 package basil
 
 import (
-  . "launchpad.net/gocheck"
+	"github.com/remogatto/prettytest"
+	"testing"
 )
 
-type RPSuite struct{}
+type RPSuite struct {
+	prettytest.Suite
+}
 
-func init() {
-  Suite(&RPSuite{})
+func TestResourcePoolRunner(t *testing.T) {
+	prettytest.RunWithFormatter(
+		t,
+		new(prettytest.TDDFormatter),
+		new(RPSuite),
+	)
 }
 
 type FakeConsumer struct {
-  UsedMemoryInBytes int
-  UsedDiskInBytes int
+	UsedMemoryInBytes int
+	UsedDiskInBytes   int
 }
 
 func (c *FakeConsumer) CurrentUsage() Usage {
-  return Usage{
-    MemoryInBytes: c.UsedMemoryInBytes,
-    DiskInBytes: c.UsedDiskInBytes,
-  }
+	return Usage{
+		MemoryInBytes: c.UsedMemoryInBytes,
+		DiskInBytes:   c.UsedDiskInBytes,
+	}
 }
 
-func (s *RPSuite) TestResourcePoolAvailableMemory(c *C) {
-  config := Config{
-    Capacity: CapacityConfig{
-      MemoryInBytes: 1 * gigabyte,
-      DiskInBytes:   1 * gigabyte,
-    },
-  }
+func (s *RPSuite) TestResourcePoolAvailableMemory() {
+	config := Config{
+		Capacity: CapacityConfig{
+			MemoryInBytes: 1 * gigabyte,
+			DiskInBytes:   1 * gigabyte,
+		},
+	}
 
-  pool := NewResourcePool(config)
-  pool.AddConsumer(&FakeConsumer{UsedMemoryInBytes: 42})
-  pool.AddConsumer(&FakeConsumer{UsedMemoryInBytes: 128})
+	pool := NewResourcePool(config)
+	pool.AddConsumer(&FakeConsumer{UsedMemoryInBytes: 42})
+	pool.AddConsumer(&FakeConsumer{UsedMemoryInBytes: 128})
 
-  c.Assert(pool.AvailableMemory(), Equals, (1 * gigabyte) - 42 - 128)
+	s.Equal(pool.AvailableMemory(), (1*gigabyte)-42-128)
 }
 
-func (s *RPSuite) TestResourcePoolAvailableDisk(c *C) {
-  config := Config{
-    Capacity: CapacityConfig{
-      MemoryInBytes: 1 * gigabyte,
-      DiskInBytes:   1 * gigabyte,
-    },
-  }
+func (s *RPSuite) TestResourcePoolAvailableDisk() {
+	config := Config{
+		Capacity: CapacityConfig{
+			MemoryInBytes: 1 * gigabyte,
+			DiskInBytes:   1 * gigabyte,
+		},
+	}
 
-  pool := NewResourcePool(config)
-  pool.AddConsumer(&FakeConsumer{UsedDiskInBytes: 42})
-  pool.AddConsumer(&FakeConsumer{UsedDiskInBytes: 128})
+	pool := NewResourcePool(config)
+	pool.AddConsumer(&FakeConsumer{UsedDiskInBytes: 42})
+	pool.AddConsumer(&FakeConsumer{UsedDiskInBytes: 128})
 
-  c.Assert(pool.AvailableDisk(), Equals, (1 * gigabyte) - 42 - 128)
+	s.Equal(pool.AvailableDisk(), (1*gigabyte)-42-128)
 }

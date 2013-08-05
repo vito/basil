@@ -1,59 +1,59 @@
 package basil
 
 import (
-  "sync"
+	"sync"
 )
 
 type Usage struct {
-  MemoryInBytes int
-  DiskInBytes int
+	MemoryInBytes int
+	DiskInBytes   int
 }
 
 type ResourcePool struct {
-  config Config
+	config Config
 
-  consumers []Consumer
+	consumers []Consumer
 
-  sync.RWMutex
+	sync.RWMutex
 }
 
 type Consumer interface {
-  CurrentUsage() Usage
+	CurrentUsage() Usage
 }
 
 func NewResourcePool(config Config) *ResourcePool {
-  return &ResourcePool{config: config}
+	return &ResourcePool{config: config}
 }
 
 func (a *ResourcePool) AddConsumer(consumer Consumer) {
-  a.Lock()
-  defer a.Unlock()
+	a.Lock()
+	defer a.Unlock()
 
-  a.consumers = append(a.consumers, consumer)
+	a.consumers = append(a.consumers, consumer)
 }
 
 func (a *ResourcePool) AvailableMemory() int {
-  a.RLock()
-  defer a.RUnlock()
+	a.RLock()
+	defer a.RUnlock()
 
-  capacity := a.config.Capacity.MemoryInBytes
+	capacity := a.config.Capacity.MemoryInBytes
 
-  for _, consumer := range a.consumers {
-    capacity -= consumer.CurrentUsage().MemoryInBytes
-  }
+	for _, consumer := range a.consumers {
+		capacity -= consumer.CurrentUsage().MemoryInBytes
+	}
 
-  return capacity
+	return capacity
 }
 
 func (a *ResourcePool) AvailableDisk() int {
-  a.RLock()
-  defer a.RUnlock()
+	a.RLock()
+	defer a.RUnlock()
 
-  capacity := a.config.Capacity.DiskInBytes
+	capacity := a.config.Capacity.DiskInBytes
 
-  for _, consumer := range a.consumers {
-    capacity -= consumer.CurrentUsage().DiskInBytes
-  }
+	for _, consumer := range a.consumers {
+		capacity -= consumer.CurrentUsage().DiskInBytes
+	}
 
-  return capacity
+	return capacity
 }

@@ -2,17 +2,24 @@ package basil
 
 import (
 	"github.com/cloudfoundry/go_cfmessagebus/mock_cfmessagebus"
-	. "launchpad.net/gocheck"
 	"time"
+	"github.com/remogatto/prettytest"
+	"testing"
 )
 
-type RSuite struct{}
-
-func init() {
-	Suite(&RSuite{})
+type RSuite struct {
+	prettytest.Suite
 }
 
-func (s *RSuite) TestRouterClientRegistering(c *C) {
+func TestRouterClientRunner(t *testing.T) {
+	prettytest.RunWithFormatter(
+		t,
+		new(prettytest.TDDFormatter),
+		new(RSuite),
+	)
+}
+
+func (s *RSuite) TestRouterClientRegistering() {
 	mbus := mock_cfmessagebus.NewMockMessageBus()
 
 	routerClient := NewRouterClient("1.2.3.4", mbus)
@@ -27,13 +34,13 @@ func (s *RSuite) TestRouterClientRegistering(c *C) {
 
 	select {
 	case msg := <-registered:
-		c.Assert(string(msg), Equals, `{"uris":["abc"],"host":"1.2.3.4","port":123}`)
+		s.Equal(string(msg), `{"uris":["abc"],"host":"1.2.3.4","port":123}`)
 	case <-time.After(500 * time.Millisecond):
-		c.Error("did not receive a router.register!")
+		s.Error("did not receive a router.register!")
 	}
 }
 
-func (s *RSuite) TestRouterClientUnregistering(c *C) {
+func (s *RSuite) TestRouterClientUnregistering() {
 	mbus := mock_cfmessagebus.NewMockMessageBus()
 
 	routerClient := NewRouterClient("1.2.3.4", mbus)
@@ -48,13 +55,13 @@ func (s *RSuite) TestRouterClientUnregistering(c *C) {
 
 	select {
 	case msg := <-registered:
-		c.Assert(string(msg), Equals, `{"uris":["abc"],"host":"1.2.3.4","port":123}`)
+		s.Equal(string(msg), `{"uris":["abc"],"host":"1.2.3.4","port":123}`)
 	case <-time.After(500 * time.Millisecond):
-		c.Error("did not receive a router.unregister!")
+		s.Error("did not receive a router.unregister!")
 	}
 }
 
-func (s *RSuite) TestRouterClientRouterStartHandling(c *C) {
+func (s *RSuite) TestRouterClientRouterStartHandling() {
 	mbus := mock_cfmessagebus.NewMockMessageBus()
 
 	routerClient := NewRouterClient("1.2.3.4", mbus)
@@ -66,20 +73,20 @@ func (s *RSuite) TestRouterClientRouterStartHandling(c *C) {
 	})
 
 	err := routerClient.Greet()
-	c.Assert(err, IsNil)
+	s.Nil(err)
 
 	mbus.Publish("router.start", []byte(`{"minimumRegisterIntervalInSeconds":1}`))
 
 	time1 := timedReceive(times, 2*time.Second)
-	c.Assert(time1, NotNil)
+	s.Not(s.Nil(time1))
 
 	time2 := timedReceive(times, 2*time.Second)
-	c.Assert(time2, NotNil)
+	s.Not(s.Nil(time2))
 
-	c.Assert((*time2).Sub(*time1) >= 1*time.Second, Equals, true)
+	s.True((*time2).Sub(*time1) >= 1*time.Second)
 }
 
-func (s *RSuite) TestRouterClientGreeting(c *C) {
+func (s *RSuite) TestRouterClientGreeting() {
 	mbus := mock_cfmessagebus.NewMockMessageBus()
 
 	routerClient := NewRouterClient("1.2.3.4", mbus)
@@ -95,15 +102,15 @@ func (s *RSuite) TestRouterClientGreeting(c *C) {
 	})
 
 	err := routerClient.Greet()
-	c.Assert(err, IsNil)
+	s.Nil(err)
 
 	time1 := timedReceive(times, 2*time.Second)
-	c.Assert(time1, NotNil)
+	s.Not(s.Nil(time1))
 
 	time2 := timedReceive(times, 2*time.Second)
-	c.Assert(time2, NotNil)
+	s.Not(s.Nil(time2))
 
-	c.Assert((*time2).Sub(*time1) >= 1*time.Second, Equals, true)
+	s.True((*time2).Sub(*time1) >= 1*time.Second)
 }
 
 func timedReceive(from chan time.Time, giveup time.Duration) *time.Time {

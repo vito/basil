@@ -1,12 +1,8 @@
 package basil_sshark
 
 import (
-	. "launchpad.net/gocheck"
-	"testing"
 	"time"
 )
-
-func Test(t *testing.T) { TestingT(t) }
 
 func timedReceive(from chan time.Time, giveup time.Duration) *time.Time {
 	select {

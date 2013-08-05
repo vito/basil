@@ -2,18 +2,25 @@ package basil_sshark
 
 import (
 	"github.com/cloudfoundry/go_cfmessagebus/mock_cfmessagebus"
+	"github.com/remogatto/prettytest"
 	"github.com/vito/basil"
-	. "launchpad.net/gocheck"
+	"testing"
 	"time"
 )
 
-type ASuite struct{}
-
-func init() {
-	Suite(&ASuite{})
+type ASuite struct {
+	prettytest.Suite
 }
 
-func (a *ASuite) TestAdvertiserAdvertisesID(c *C) {
+func TestAdvertiserRunner(t *testing.T) {
+	prettytest.RunWithFormatter(
+		t,
+		new(prettytest.TDDFormatter),
+		new(ASuite),
+	)
+}
+
+func (s *ASuite) TestAdvertiserAdvertisesID() {
 	mbus := mock_cfmessagebus.NewMockMessageBus()
 
 	config := basil.Config{
@@ -33,10 +40,10 @@ func (a *ASuite) TestAdvertiserAdvertisesID(c *C) {
 	advertiser.AdvertisePeriodically(mbus)
 
 	ad := waitReceive(advertisements, 1*time.Second)
-	c.Assert(string(ad), Equals, `{"id":"some-unique-id"}`)
+	s.Equal(string(ad), `{"id":"some-unique-id"}`)
 }
 
-func (a *ASuite) TestAdvertiserAdvertisesPeriodically(c *C) {
+func (s *ASuite) TestAdvertiserAdvertisesPeriodically() {
 	mbus := mock_cfmessagebus.NewMockMessageBus()
 
 	config := basil.Config{
@@ -56,19 +63,19 @@ func (a *ASuite) TestAdvertiserAdvertisesPeriodically(c *C) {
 	advertiser.AdvertisePeriodically(mbus)
 
 	msg1 := waitReceive(advertisements, 1*time.Second)
-	c.Assert(msg1, NotNil)
+	s.Not(s.Nil(msg1))
 
 	time1 := time.Now()
 
 	msg2 := waitReceive(advertisements, 1*time.Second)
-	c.Assert(msg2, NotNil)
+	s.Not(s.Nil(msg2))
 
 	time2 := time.Now()
 
-	c.Assert(time2.Sub(time1) >= 100*time.Millisecond, Equals, true)
+	s.True(time2.Sub(time1) >= 100*time.Millisecond)
 }
 
-func (a *ASuite) TestAdvertiserAdvertisesUpdatedID(c *C) {
+func (s *ASuite) TestAdvertiserAdvertisesUpdatedID() {
 	mbus := mock_cfmessagebus.NewMockMessageBus()
 
 	config := basil.Config{
@@ -88,15 +95,15 @@ func (a *ASuite) TestAdvertiserAdvertisesUpdatedID(c *C) {
 	advertiser.AdvertisePeriodically(mbus)
 
 	msg1 := waitReceive(advertisements, 1*time.Second)
-	c.Assert(string(msg1), Equals, `{"id":"some-unique-id"}`)
+	s.Equal(string(msg1), `{"id":"some-unique-id"}`)
 
 	advertiser.Update(&State{ID: "some-other-unique-id"})
 
 	msg2 := waitReceive(advertisements, 1*time.Second)
-	c.Assert(string(msg2), Equals, `{"id":"some-other-unique-id"}`)
+	s.Equal(string(msg2), `{"id":"some-other-unique-id"}`)
 }
 
-func (a *ASuite) TestAdvertiserDoesNotAdvertiseWithoutState(c *C) {
+func (s *ASuite) TestAdvertiserDoesNotAdvertiseWithoutState() {
 	mbus := mock_cfmessagebus.NewMockMessageBus()
 
 	config := basil.Config{
@@ -113,5 +120,5 @@ func (a *ASuite) TestAdvertiserDoesNotAdvertiseWithoutState(c *C) {
 	advertiser.AdvertisePeriodically(mbus)
 
 	msg1 := waitReceive(advertisements, 1*time.Second)
-	c.Assert(msg1, IsNil)
+	s.Nil(msg1)
 }

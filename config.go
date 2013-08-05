@@ -7,9 +7,9 @@ import (
 )
 
 type Config struct {
-	Host       string
-	MessageBus MessageBusConfig
-	Capacity   CapacityConfig
+	Host              string
+	MessageBus        MessageBusConfig
+	Capacity          CapacityConfig
 	AdvertiseInterval time.Duration
 }
 

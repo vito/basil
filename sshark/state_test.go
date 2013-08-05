@@ -2,16 +2,24 @@ package basil_sshark
 
 import (
 	"bytes"
+	"github.com/remogatto/prettytest"
 	. "launchpad.net/gocheck"
+	"testing"
 )
 
-type SSuite struct{}
-
-func init() {
-	Suite(&SSuite{})
+type SSuite struct {
+	prettytest.Suite
 }
 
-func (s *SSuite) TestParsingState(c *C) {
+func TestStateRunner(t *testing.T) {
+	prettytest.RunWithFormatter(
+		t,
+		new(prettytest.TDDFormatter),
+		new(SSuite),
+	)
+}
+
+func (s *SSuite) TestParsingState() {
 	state, err := ParseState(bytes.NewBuffer([]byte(
 		`{
 			"id":"abc",
@@ -28,10 +36,10 @@ func (s *SSuite) TestParsingState(c *C) {
 		}`,
 	)))
 
-	c.Assert(err, IsNil)
+	s.Nil(err)
 
-	c.Assert(state.ID, Equals, "abc")
-	c.Assert(state.Sessions, DeepEquals, map[string]Session{
+	s.Equal(state.ID, "abc")
+	s.Check(state.Sessions, DeepEquals, map[string]Session{
 		"abc": Session{Port: 123},
 		"def": Session{Port: 456},
 	})

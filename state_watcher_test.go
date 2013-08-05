@@ -3,65 +3,72 @@ package basil
 import (
 	"io"
 	"io/ioutil"
-	. "launchpad.net/gocheck"
 	"os"
 	"os/exec"
 	"time"
+	"github.com/remogatto/prettytest"
+	"testing"
 )
 
 type SWSuite struct {
 	stateFile *os.File
+
+	prettytest.Suite
 }
 
-func init() {
-	Suite(&SWSuite{})
+func TestStateWatcherRunner(t *testing.T) {
+	prettytest.RunWithFormatter(
+		t,
+		new(prettytest.TDDFormatter),
+		new(SWSuite),
+	)
 }
 
-func (s *SWSuite) SetUpSuite(c *C) {
+func (s *SWSuite) BeforeAll() {
 	tmpdir := os.TempDir()
 
 	file, err := ioutil.TempFile(tmpdir, "state-watcher-state-file")
-	c.Assert(err, IsNil)
+	s.Nil(err)
 
 	s.stateFile = file
 }
 
-func (s *SWSuite) TearDownSuite(c *C) {
+func (s *SWSuite) AfterAll() {
 	err := os.Remove(s.stateFile.Name())
-	c.Assert(err, IsNil)
+	s.Nil(err)
 }
 
-func (s *SWSuite) TestStateWatcherSeesModifications(c *C) {
+func (s *SWSuite) TestStateWatcherSeesModifications() {
 	sw := NewStateWatcher(s.stateFile.Name())
 
 	modified := make(chan []byte)
 
 	err := sw.OnStateChange(func(io io.Reader) {
 		contents, err := ioutil.ReadAll(io)
-		c.Assert(err, IsNil)
+		s.Nil(err)
 
 		modified <- contents
 	})
-	c.Assert(err, IsNil)
+	s.Nil(err)
 
 	val := waitReceive(modified)
-	c.Assert(string(val), Equals, "")
+	s.Equal(string(val), "")
 
 	writeAbc := exec.Command("echo", "abc")
 	writeAbc.Stdout = s.stateFile
 	err = writeAbc.Run()
-	c.Assert(err, IsNil)
+	s.Nil(err)
 
 	val = waitReceive(modified)
-	c.Assert(string(val), Equals, "abc\n")
+	s.Equal(string(val), "abc\n")
 
 	writeDef := exec.Command("echo", "def")
 	writeDef.Stdout = s.stateFile
 	err = writeDef.Run()
-	c.Assert(err, IsNil)
+	s.Nil(err)
 
 	val = waitReceive(modified)
-	c.Assert(string(val), Equals, "abc\ndef\n")
+	s.Equal(string(val), "abc\ndef\n")
 }
 
 func waitReceive(from chan []byte) []byte {

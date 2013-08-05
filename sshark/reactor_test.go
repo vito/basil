@@ -2,45 +2,52 @@ package basil_sshark
 
 import (
 	"github.com/cloudfoundry/go_cfmessagebus/mock_cfmessagebus"
+	"github.com/remogatto/prettytest"
 	"github.com/vito/basil"
 	"io/ioutil"
-	. "launchpad.net/gocheck"
 	"os"
+	"testing"
 	"time"
 )
 
 type WSuite struct {
 	stateFile *os.File
+
+	prettytest.Suite
 }
 
-func init() {
-	Suite(&WSuite{})
+func TestReactorRunner(t *testing.T) {
+	prettytest.RunWithFormatter(
+		t,
+		new(prettytest.TDDFormatter),
+		new(WSuite),
+	)
 }
 
-func (s *WSuite) SetUpTest(c *C) {
+func (s *WSuite) Before() {
 	tmpdir := os.TempDir()
 
 	file, err := ioutil.TempFile(tmpdir, "sshark-watcher-state-file")
-	c.Assert(err, IsNil)
+	s.Nil(err)
 
 	err = ioutil.WriteFile(file.Name(), []byte(`{"id":"abc","sessions":{}}`), 0644)
-	c.Assert(err, IsNil)
+	s.Nil(err)
 
 	s.stateFile = file
 }
 
-func (s *WSuite) TearDownTest(c *C) {
+func (s *WSuite) After() {
 	err := os.Remove(s.stateFile.Name())
-	c.Assert(err, IsNil)
+	s.Nil(err)
 }
 
-func (s *WSuite) TestReactingToState(c *C) {
+func (s *WSuite) TestReactingToState() {
 	watcher := basil.NewStateWatcher(s.stateFile.Name())
 
 	mbus := mock_cfmessagebus.NewMockMessageBus()
 
 	err := ReactTo(watcher, mbus, basil.DefaultConfig)
-	c.Assert(err, IsNil)
+	s.Nil(err)
 
 	registered := make(chan []byte)
 
@@ -54,17 +61,17 @@ func (s *WSuite) TestReactingToState(c *C) {
 		0644,
 	)
 
-	c.Assert(err, IsNil)
+	s.Nil(err)
 
 	select {
 	case msg := <-registered:
-		c.Assert(string(msg), Equals, `{"uris":["abc"],"host":"127.0.0.1","port":123}`)
+		s.Equal(string(msg), `{"uris":["abc"],"host":"127.0.0.1","port":123}`)
 	case <-time.After(500 * time.Millisecond):
-		c.Error("did not receive a router.register!")
+		s.Error("did not receive a router.register!")
 	}
 }
 
-func (s *WSuite) TestHandlingInitialState(c *C) {
+func (s *WSuite) TestHandlingInitialState() {
 	watcher := basil.NewStateWatcher(s.stateFile.Name())
 
 	mbus := mock_cfmessagebus.NewMockMessageBus()
@@ -74,7 +81,7 @@ func (s *WSuite) TestHandlingInitialState(c *C) {
 		[]byte(`{"id":"abc","sessions":{"abc":{"port":123,"container":"foo"}}}`),
 		0644,
 	)
-	c.Assert(err, IsNil)
+	s.Nil(err)
 
 	registered := make(chan []byte)
 
@@ -83,17 +90,17 @@ func (s *WSuite) TestHandlingInitialState(c *C) {
 	})
 
 	err = ReactTo(watcher, mbus, basil.DefaultConfig)
-	c.Assert(err, IsNil)
+	s.Nil(err)
 
 	select {
 	case msg := <-registered:
-		c.Assert(string(msg), Equals, `{"uris":["abc"],"host":"127.0.0.1","port":123}`)
+		s.Equal(string(msg), `{"uris":["abc"],"host":"127.0.0.1","port":123}`)
 	case <-time.After(500 * time.Millisecond):
-		c.Error("did not receive a router.register!")
+		s.Error("did not receive a router.register!")
 	}
 }
 
-func (s *WSuite) TestReactingToRouterStart(c *C) {
+func (s *WSuite) TestReactingToRouterStart() {
 	watcher := basil.NewStateWatcher(s.stateFile.Name())
 
 	mbus := mock_cfmessagebus.NewMockMessageBus()
@@ -103,10 +110,10 @@ func (s *WSuite) TestReactingToRouterStart(c *C) {
 		[]byte(`{"id":"abc","sessions":{"abc":{"port":123,"container":"foo"}}}`),
 		0644,
 	)
-	c.Assert(err, IsNil)
+	s.Nil(err)
 
 	err = ReactTo(watcher, mbus, basil.DefaultConfig)
-	c.Assert(err, IsNil)
+	s.Nil(err)
 
 	registered := make(chan time.Time)
 
@@ -117,15 +124,15 @@ func (s *WSuite) TestReactingToRouterStart(c *C) {
 	mbus.Publish("router.start", []byte(`{"minimumRegisterIntervalInSeconds":1}`))
 
 	time1 := timedReceive(registered, 2*time.Second)
-	c.Assert(time1, NotNil)
+	s.Not(s.Nil(time1))
 
 	time2 := timedReceive(registered, 2*time.Second)
-	c.Assert(time2, NotNil)
+	s.Not(s.Nil(time2))
 
-	c.Assert((*time2).Sub(*time1) >= 1*time.Second, Equals, true)
+	s.True((*time2).Sub(*time1) >= 1*time.Second)
 }
 
-func (s *WSuite) TestReactorSendsAdvertisements(c *C) {
+func (s *WSuite) TestReactorSendsAdvertisements() {
 	watcher := basil.NewStateWatcher(s.stateFile.Name())
 
 	mbus := mock_cfmessagebus.NewMockMessageBus()
@@ -135,13 +142,13 @@ func (s *WSuite) TestReactorSendsAdvertisements(c *C) {
 		[]byte(`{"id":"abc","sessions":{}}`),
 		0644,
 	)
-	c.Assert(err, IsNil)
+	s.Nil(err)
 
 	config := basil.DefaultConfig
 	config.AdvertiseInterval = 100 * time.Millisecond
 
 	err = ReactTo(watcher, mbus, config)
-	c.Assert(err, IsNil)
+	s.Nil(err)
 
 	advertised := make(chan time.Time)
 
@@ -150,15 +157,15 @@ func (s *WSuite) TestReactorSendsAdvertisements(c *C) {
 	})
 
 	time1 := timedReceive(advertised, 1*time.Second)
-	c.Assert(time1, NotNil)
+	s.Not(s.Nil(time1))
 
 	time2 := timedReceive(advertised, 1*time.Second)
-	c.Assert(time2, NotNil)
+	s.Not(s.Nil(time2))
 
-	c.Assert((*time2).Sub(*time1) >= 100*time.Millisecond, Equals, true)
+	s.True((*time2).Sub(*time1) >= 100*time.Millisecond)
 }
 
-func (s *WSuite) TestReactorSendsAdvertisementsWithUpdatedID(c *C) {
+func (s *WSuite) TestReactorSendsAdvertisementsWithUpdatedID() {
 	watcher := basil.NewStateWatcher(s.stateFile.Name())
 
 	mbus := mock_cfmessagebus.NewMockMessageBus()
@@ -168,13 +175,13 @@ func (s *WSuite) TestReactorSendsAdvertisementsWithUpdatedID(c *C) {
 		[]byte(`{"id":"abc","sessions":{}}`),
 		0644,
 	)
-	c.Assert(err, IsNil)
+	s.Nil(err)
 
 	config := basil.DefaultConfig
 	config.AdvertiseInterval = 100 * time.Millisecond
 
 	err = ReactTo(watcher, mbus, config)
-	c.Assert(err, IsNil)
+	s.Nil(err)
 
 	advertised := make(chan []byte)
 
@@ -183,15 +190,15 @@ func (s *WSuite) TestReactorSendsAdvertisementsWithUpdatedID(c *C) {
 	})
 
 	msg1 := waitReceive(advertised, 2*time.Second)
-	c.Assert(string(msg1), Equals, `{"id":"abc"}`)
+	s.Equal(string(msg1), `{"id":"abc"}`)
 
 	err = ioutil.WriteFile(
 		s.stateFile.Name(),
 		[]byte(`{"id":"def","sessions":{}}`),
 		0644,
 	)
-	c.Assert(err, IsNil)
+	s.Nil(err)
 
 	msg2 := waitReceive(advertised, 2*time.Second)
-	c.Assert(string(msg2), Equals, `{"id":"def"}`)
+	s.Equal(string(msg2), `{"id":"def"}`)
 }

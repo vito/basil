@@ -2,18 +2,25 @@ package basil_sshark
 
 import (
 	"github.com/cloudfoundry/go_cfmessagebus/mock_cfmessagebus"
+	"github.com/remogatto/prettytest"
 	"github.com/vito/basil"
-	. "launchpad.net/gocheck"
+	"testing"
 	"time"
 )
 
-type SRSuite struct{}
-
-func init() {
-	Suite(&SRSuite{})
+type SRSuite struct {
+	prettytest.Suite
 }
 
-func (s *SRSuite) TestRegistrarUpdateRegisters(c *C) {
+func TestRegistrarRunner(t *testing.T) {
+	prettytest.RunWithFormatter(
+		t,
+		new(prettytest.TDDFormatter),
+		new(SRSuite),
+	)
+}
+
+func (s *SRSuite) TestRegistrarUpdateRegisters() {
 	mbus := mock_cfmessagebus.NewMockMessageBus()
 
 	routerClient := basil.NewRouterClient("1.2.3.4", mbus)
@@ -35,13 +42,13 @@ func (s *SRSuite) TestRegistrarUpdateRegisters(c *C) {
 
 	select {
 	case msg := <-registered:
-		c.Assert(string(msg), Equals, `{"uris":["abc"],"host":"1.2.3.4","port":123}`)
+		s.Equal(string(msg), `{"uris":["abc"],"host":"1.2.3.4","port":123}`)
 	case <-time.After(500 * time.Millisecond):
-		c.Error("did not receive a router.register!")
+		s.Error("did not receive a router.register!")
 	}
 }
 
-func (s *SRSuite) TestRegistrarUpdateUnregisters(c *C) {
+func (s *SRSuite) TestRegistrarUpdateUnregisters() {
 	mbus := mock_cfmessagebus.NewMockMessageBus()
 
 	routerClient := basil.NewRouterClient("1.2.3.4", mbus)
@@ -69,13 +76,13 @@ func (s *SRSuite) TestRegistrarUpdateUnregisters(c *C) {
 
 	select {
 	case msg := <-unregistered:
-		c.Assert(string(msg), Equals, `{"uris":["abc"],"host":"1.2.3.4","port":123}`)
+		s.Equal(string(msg), `{"uris":["abc"],"host":"1.2.3.4","port":123}`)
 	case <-time.After(500 * time.Millisecond):
-		c.Error("did not receive a router.register!")
+		s.Error("did not receive a router.register!")
 	}
 }
 
-func (s *SRSuite) TestPeriodicRegistration(c *C) {
+func (s *SRSuite) TestPeriodicRegistration() {
 	mbus := mock_cfmessagebus.NewMockMessageBus()
 
 	routerClient := basil.NewRouterClient("1.2.3.4", mbus)
@@ -100,13 +107,13 @@ func (s *SRSuite) TestPeriodicRegistration(c *C) {
 	})
 
 	err := registrar.RegisterPeriodically()
-	c.Assert(err, IsNil)
+	s.Nil(err)
 
 	time1 := timedReceive(registered, 2*time.Second)
-	c.Assert(time1, NotNil)
+	s.Not(s.Nil(time1))
 
 	time2 := timedReceive(registered, 2*time.Second)
-	c.Assert(time2, NotNil)
+	s.Not(s.Nil(time2))
 
-	c.Assert((*time2).Sub(*time1) >= 1*time.Second, Equals, true)
+	s.True((*time2).Sub(*time1) >= 1*time.Second)
 }
