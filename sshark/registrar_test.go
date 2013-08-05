@@ -99,7 +99,7 @@ func (s *SRSuite) TestPeriodicRegistration(c *C) {
 		return []byte(`{"minimumRegisterIntervalInSeconds":1}`)
 	})
 
-	err := registrar.PeriodicallyRegister()
+	err := registrar.RegisterPeriodically()
 	c.Assert(err, IsNil)
 
 	time1 := timedReceive(registered, 2*time.Second)

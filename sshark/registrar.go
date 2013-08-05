@@ -50,7 +50,7 @@ func (r *Registrar) BroadcastCurrentRoutes() {
 	r.registerRoutes(r.routes)
 }
 
-func (r *Registrar) PeriodicallyRegister() error {
+func (r *Registrar) RegisterPeriodically() error {
 	r.routerClient.Periodically(r.BroadcastCurrentRoutes)
 
 	return r.routerClient.Greet()

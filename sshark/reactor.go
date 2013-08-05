@@ -12,7 +12,7 @@ func ReactTo(watcher *basil.StateWatcher, mbus cf.MessageBus, config basil.Confi
 
 	registrar := NewRegistrar(routerClient)
 
-	err := registrar.PeriodicallyRegister()
+	err := registrar.RegisterPeriodically()
 	if err != nil {
 		return err
 	}
